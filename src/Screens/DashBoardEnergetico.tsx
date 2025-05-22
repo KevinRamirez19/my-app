@@ -1,442 +1,255 @@
-import React, { useState, useEffect } from 'react';
-import { Bar, Pie, Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
 
-// Registrar componentes de ChartJS
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend
-);
+const Dashboard = () => {
+  const [activeSection, setActiveSection] = useState('resumen');
 
-// Tipos
-type Pais = 'Colombia' | 'Canada';
-
-type DatosConsumo = {
-  year: number;
-  consumo: number; // consumo energético (ejemplo)
-};
-
-type DashboardData = {
-  consumoAnual: DatosConsumo[];
-  renovablesPorcentaje: number; // para Pie
-  barrasComparacion: number[]; // ejemplo: consumo por sector
-};
-
-// Datos ficticios para ejemplo
-const datosFicticios: Record<Pais, DashboardData> = {
-  Colombia: {
-    consumoAnual: [
-      { year: 2018, consumo: 150 },
-      { year: 2019, consumo: 160 },
-      { year: 2020, consumo: 140 },
-      { year: 2021, consumo: 170 },
-      { year: 2022, consumo: 180 },
-    ],
-    renovablesPorcentaje: 40,
-    barrasComparacion: [60, 40, 30, 20, 10],
-  },
-  Canada: {
-    consumoAnual: [
-      { year: 2018, consumo: 200 },
-      { year: 2019, consumo: 210 },
-      { year: 2020, consumo: 190 },
-      { year: 2021, consumo: 230 },
-      { year: 2022, consumo: 250 },
-    ],
-    renovablesPorcentaje: 55,
-    barrasComparacion: [90, 60, 40, 30, 25],
-  },
-};
-
-// Animaciones para framer-motion
-const containerAnim = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
-};
-
-const itemAnim = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
-
-// Spinner simple
-const Spinner = () => (
-  <div
-    aria-label="Cargando datos"
-    role="status"
-    style={{
-      border: '4px solid #ccc',
-      borderTop: '4px solid #1976d2',
-      borderRadius: '50%',
-      width: 40,
-      height: 40,
-      animation: 'spin 1s linear infinite',
-      margin: '40px auto',
-    }}
-  />
-);
-
-// Añadimos keyframes para spinner en global CSS (puedes agregar en tu CSS)
-// @keyframes spin {
-//   0% { transform: rotate(0deg); }
-//   100% { transform: rotate(360deg); }
-// }
-
-const DashboardEnergetico: React.FC = () => {
-  // Estados
-  const [modoOscuro, setModoOscuro] = useState(false);
-  const [modoAltoContraste, setModoAltoContraste] = useState(false);
-  const [anioFiltro, setAnioFiltro] = useState(2022);
-  const [cargando, setCargando] = useState(true);
-
-  // Simula carga datos
-  useEffect(() => {
-    const timer = setTimeout(() => setCargando(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Preparamos los datos para las gráficas según el año filtro
-  const prepararDatosLinea = (pais: Pais) => {
-    const data = datosFicticios[pais].consumoAnual.filter((d) => d.year <= anioFiltro);
-    return {
-      labels: data.map((d) => d.year.toString()),
-      datasets: [
-        {
-          label: `Consumo energético ${pais}`,
-          data: data.map((d) => d.consumo),
-          borderColor: pais === 'Colombia' ? '#1976d2' : '#388e3c',
-          backgroundColor: 'transparent',
-          fill: false,
-          tension: 0.2,
-        },
-      ],
-    };
+  const styles = {
+    dashboardContainer: {
+      display: 'flex',
+      height: '100vh',
+      fontFamily: 'Segoe UI, sans-serif',
+      backgroundColor: '#f4f6f9',
+      color: '#333',
+    },
+    sidebar: {
+      width: '250px',
+      backgroundColor: '#1e293b',
+      color: '#fff',
+      padding: '20px',
+      boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
+    },
+    navList: {
+      listStyle: 'none',
+      padding: 0,
+      marginTop: '30px',
+    },
+    navItem: (active: boolean) => ({
+      padding: '12px 10px',
+      cursor: 'pointer',
+      borderRadius: '6px',
+      marginBottom: '10px',
+      transition: 'background 0.3s',
+      backgroundColor: active ? '#3b82f6' : 'transparent',
+      color: active ? '#fff' : '#cbd5e1',
+      fontWeight: active ? '600' : 'normal',
+      userSelect: 'none' as const,
+    }),
+    mainContent: {
+      flex: 1,
+      padding: '30px',
+      overflowY: 'auto' as const,
+    },
+    header: {
+      marginBottom: '20px',
+      borderBottom: '2px solid #e2e8f0',
+      paddingBottom: '10px',
+    },
+    section: {
+      marginBottom: '40px',
+    },
+    sectionTitle: {
+      fontSize: '1.25rem',
+      marginBottom: '15px',
+      fontWeight: 'bold',
+      color: '#1e293b',
+    },
+    chartContainer: {
+      backgroundColor: '#fff',
+      padding: '20px',
+      borderRadius: '10px',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+      minHeight: '300px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center' as const,
+    },
+    table: {
+      width: '100%',
+      borderCollapse: 'collapse' as const,
+      backgroundColor: '#fff',
+      borderRadius: '10px',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+    },
+    th: {
+      borderBottom: '2px solid #1e293b',
+      textAlign: 'left' as const,
+      padding: '12px 15px',
+      backgroundColor: '#e2e8f0',
+      color: '#1e293b',
+      fontWeight: '600',
+    },
+    td: {
+      borderBottom: '1px solid #ddd',
+      padding: '12px 15px',
+      color: '#555',
+    },
+    trHover: {
+      backgroundColor: '#f1f5f9',
+    },
   };
 
-  const prepararDatosBarras = (pais: Pais) => ({
-    labels: ['Sector Industrial', 'Residencial', 'Comercial', 'Transporte', 'Agricultura'],
-    datasets: [
-      {
-        label: `Consumo por sector - ${pais}`,
-        data: datosFicticios[pais].barrasComparacion,
-        backgroundColor: pais === 'Colombia' ? '#1976d2' : '#388e3c',
-      },
-    ],
-  });
+  // Datos de ejemplo para comparación entre países
+  const tableData = [
+    { id: 1, pais: 'Colombia', consumo_kwh: 123450, mes: 'Enero 2025' },
+    { id: 2, pais: 'México', consumo_kwh: 98765, mes: 'Enero 2025' },
+    { id: 3, pais: 'Argentina', consumo_kwh: 156780, mes: 'Enero 2025' },
+    { id: 4, pais: 'Chile', consumo_kwh: 43210, mes: 'Enero 2025' },
+  ];
 
-  const prepararDatosPie = (pais: Pais) => ({
-    labels: ['Renovable', 'No renovable'],
-    datasets: [
-      {
-        label: '% Renovables',
-        data: [datosFicticios[pais].renovablesPorcentaje, 100 - datosFicticios[pais].renovablesPorcentaje],
-        backgroundColor: ['#43a047', '#e53935'],
-      },
-    ],
-  });
-
-  // Exportar gráfica a PNG
-  const exportChartAsImage = (id: string) => {
-    const chart = document.getElementById(id) as HTMLCanvasElement | null;
-    if (chart) {
-      const url = chart.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${id}.png`;
-      a.click();
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'resumen':
+        return (
+          <section style={styles.section}>
+            <h2 style={styles.sectionTitle}>Resumen Comparativo entre Países</h2>
+            <div style={styles.chartContainer}>
+              <p>Gráficos resumen comparativo aquí (ej. consumo total por país)</p>
+            </div>
+          </section>
+        );
+      case 'consumo':
+        return (
+          <section style={styles.section}>
+            <h2 style={styles.sectionTitle}>Consumo de Energía por País</h2>
+            <div style={styles.chartContainer}>
+              <p>Gráficos de consumo sectorial por país aquí</p>
+            </div>
+          </section>
+        );
+      case 'solar':
+        return (
+          <section style={styles.section}>
+            <h2 style={styles.sectionTitle}>Energías Renovables por País</h2>
+            <div style={styles.chartContainer}>
+              <p>Gráficos de energía solar y otras renovables aquí</p>
+            </div>
+          </section>
+        );
+      case 'comparativos':
+        return (
+          <section style={styles.section}>
+            <h2 style={styles.sectionTitle}>Indicadores Comparativos</h2>
+            <div style={styles.chartContainer}>
+              <p>Gráficos de indicadores energéticos comparados entre países</p>
+            </div>
+          </section>
+        );
+      case 'alertas':
+        return (
+          <section style={styles.section}>
+            <h2 style={styles.sectionTitle}>Alertas y Tendencias Globales</h2>
+            <div style={styles.chartContainer}>
+              <p>Gráficos de alertas y tendencias energéticas globales</p>
+            </div>
+          </section>
+        );
+      case 'reportes':
+        return (
+          <section style={styles.section}>
+            <h2 style={styles.sectionTitle}>Reportes Descargables</h2>
+            <div style={styles.chartContainer}>
+              <p>Reportes comparativos y análisis descargables aquí</p>
+            </div>
+          </section>
+        );
+      case 'datos':
+        return (
+          <section style={styles.section}>
+            <h2 style={styles.sectionTitle}>Datos Detallados por País</h2>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>País</th>
+                  <th style={styles.th}>Consumo (kWh)</th>
+                  <th style={styles.th}>Mes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableData.map(({ id, pais, consumo_kwh, mes }) => (
+                  <tr
+                    key={id}
+                    style={{ cursor: 'default' }}
+                    onMouseEnter={e =>
+                      (e.currentTarget.style.backgroundColor = styles.trHover.backgroundColor)
+                    }
+                    onMouseLeave={e =>
+                      (e.currentTarget.style.backgroundColor = 'transparent')
+                    }
+                  >
+                    <td style={styles.td}>{pais}</td>
+                    <td style={styles.td}>{consumo_kwh.toLocaleString()}</td>
+                    <td style={styles.td}>{mes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        );
+      default:
+        return null;
     }
   };
 
-  // Temas de colores
-  const temaBase = modoOscuro
-    ? {
-        background: '#121212',
-        color: '#fff',
-      }
-    : {
-        background: '#f5f5f5',
-        color: '#000',
-      };
-
-  const temaAltoContrasteColores = {
-    background: '#000',
-    color: '#FFD500',
-  };
-
-  // Estilo principal considerando modo alto contraste
-  const estiloPrincipal = modoAltoContraste ? temaAltoContrasteColores : temaBase;
-
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: estiloPrincipal.background,
-        color: estiloPrincipal.color,
-        fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-        padding: '20px',
-        transition: 'all 0.3s ease',
-      }}
-    >
-      <header style={{ marginBottom: 20, textAlign: 'center' }}>
-        <h1 tabIndex={0} aria-label="Dashboard comparativo energético Colombia y Canadá">
-          📊 Comparativa Energética: Renovable y ELectrica
-        </h1>
-
-        <div style={{ marginTop: 10, display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <button
-            aria-pressed={modoOscuro}
-            onClick={() => setModoOscuro(!modoOscuro)}
-            style={{
-              padding: '8px 12px',
-              cursor: 'pointer',
-              borderRadius: 4,
-              border: 'none',
-              backgroundColor: modoOscuro ? '#1976d2' : '#ccc',
-              color: modoOscuro ? '#fff' : '#000',
-              fontWeight: 'bold',
-              minWidth: 110,
-            }}
+    <div style={styles.dashboardContainer}>
+      <aside style={styles.sidebar}>
+        <h2>Dashboard Energético</h2>
+        <ul style={styles.navList}>
+          <li
+            style={styles.navItem(activeSection === 'resumen')}
+            onClick={() => setActiveSection('resumen')}
           >
-            Modo Oscuro
-          </button>
-
-          <button
-            aria-pressed={modoAltoContraste}
-            onClick={() => setModoAltoContraste(!modoAltoContraste)}
-            style={{
-              padding: '8px 12px',
-              cursor: 'pointer',
-              borderRadius: 4,
-              border: 'none',
-              backgroundColor: modoAltoContraste ? '#FFD500' : '#ccc',
-              color: modoAltoContraste ? '#000' : '#000',
-              fontWeight: 'bold',
-              minWidth: 140,
-            }}
+            Resumen Comparativo
+          </li>
+          <li
+            style={styles.navItem(activeSection === 'consumo')}
+            onClick={() => setActiveSection('consumo')}
           >
-            Modo Alto Contraste
-          </button>
+            Consumo por País
+          </li>
+          <li
+            style={styles.navItem(activeSection === 'solar')}
+            onClick={() => setActiveSection('solar')}
+          >
+            Energías Renovables
+          </li>
+          <li
+            style={styles.navItem(activeSection === 'comparativos')}
+            onClick={() => setActiveSection('comparativos')}
+          >
+            Indicadores Comparativos
+          </li>
+          <li
+            style={styles.navItem(activeSection === 'alertas')}
+            onClick={() => setActiveSection('alertas')}
+          >
+            Alertas Globales
+          </li>
+          <li
+            style={styles.navItem(activeSection === 'reportes')}
+            onClick={() => setActiveSection('reportes')}
+          >
+            Reportes
+          </li>
+          <li
+            style={styles.navItem(activeSection === 'datos')}
+            onClick={() => setActiveSection('datos')}
+          >
+            Datos en Tabla
+          </li>
+        </ul>
+      </aside>
 
-          <label htmlFor="selectAnio" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            Año máximo:
-            <select
-              id="selectAnio"
-              aria-label="Filtro por año máximo"
-              value={anioFiltro}
-              onChange={(e) => setAnioFiltro(Number(e.target.value))}
-              style={{ padding: 6, borderRadius: 4 }}
-            >
-              {[2018, 2019, 2020, 2021, 2022].map((anio) => (
-                <option key={anio} value={anio}>
-                  {anio}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </header>
+      <main style={styles.mainContent}>
+        <header style={styles.header}>
+          <h1>Dashboard Comparativo de Energía por País</h1>
+        </header>
 
-      {cargando ? (
-        <Spinner />
-      ) : (
-        <motion.main
-          initial="hidden"
-          animate="visible"
-          variants={containerAnim}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))',
-            gap: 20,
-            maxWidth: 1200,
-            margin: '0 auto',
-          }}
-        >
-          {/* Repetimos para Colombia y Canadá */}
-          {(['Colombia', 'Canada'] as Pais[]).map((pais) => (
-            <section
-              key={pais}
-              aria-labelledby={`titulo-${pais}`}
-              style={{
-                backgroundColor: modoAltoContraste
-                  ? '#000'
-                  : modoOscuro
-                  ? '#263238'
-                  : '#fff',
-                borderRadius: 8,
-                padding: 16,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              }}
-            >
-              <h2 id={`titulo-${pais}`} tabIndex={0} style={{ textAlign: 'center', marginBottom: 12 }}>
-                {pais === 'Canada' ? '🇨🇦 Canadá' : '🇨🇴 Colombia'}
-              </h2>
-
-              {/* Gráfica de barras */}
-              <motion.div
-                variants={itemAnim}
-                role="img"
-                aria-label={`Gráfica de barras para consumo por sector en ${pais}`}
-                style={{ marginBottom: 20 }}
-              >
-                <Bar
-                  id={`barras-${pais}`}
-                  data={prepararDatosBarras(pais)}
-                  options={{
-                    responsive: true,
-                    plugins: {
-                      legend: { display: true, position: 'bottom' },
-                      tooltip: { enabled: true },
-                    },
-                  }}
-                />
-                <button
-                  onClick={() => exportChartAsImage(`barras-${pais}`)}
-                  aria-label={`Exportar gráfica de barras de ${pais} como imagen PNG`}
-                  style={{
-                    marginTop: 8,
-                    padding: '6px 10px',
-                    cursor: 'pointer',
-                    borderRadius: 4,
-                    border: 'none',
-                    backgroundColor: '#1976d2',
-                    color: '#fff',
-                  }}
-                >
-                  Exportar PNG
-                </button>
-              </motion.div>
-
-              {/* Gráfica de pastel */}
-              <motion.div
-                variants={itemAnim}
-                role="img"
-                aria-label={`Gráfica de pastel de distribución renovable en ${pais}`}
-                style={{ marginBottom: 20 }}
-              >
-                <Pie
-                  id={`pie-${pais}`}
-                  data={prepararDatosPie(pais)}
-                  options={{
-                    responsive: true,
-                    plugins: {
-                      legend: { display: true, position: 'bottom' },
-                      tooltip: { enabled: true },
-                    },
-                  }}
-                />
-                <button
-                  onClick={() => exportChartAsImage(`pie-${pais}`)}
-                  aria-label={`Exportar gráfica de pastel de ${pais} como imagen PNG`}
-                  style={{
-                    marginTop: 8,
-                    padding: '6px 10px',
-                    cursor: 'pointer',
-                    borderRadius: 4,
-                    border: 'none',
-                    backgroundColor: '#1976d2',
-                    color: '#fff',
-                  }}
-                >
-                  Exportar PNG
-                </button>
-              </motion.div>
-
-              {/* Gráfica de línea */}
-              <motion.div
-                variants={itemAnim}
-                role="img"
-                aria-label={`Gráfica de línea de evolución del consumo en ${pais} hasta ${anioFiltro}`}
-              >
-                <Line
-                  id={`linea-${pais}`}
-                  data={prepararDatosLinea(pais)}
-                  options={{
-                    responsive: true,
-                    plugins: {
-                      legend: { display: true, position: 'bottom' },
-                      tooltip: { enabled: true },
-                    },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                      },
-                    },
-                  }}
-                />
-                <button
-                  onClick={() => exportChartAsImage(`linea-${pais}`)}
-                  aria-label={`Exportar gráfica de línea de ${pais} como imagen PNG`}
-                  style={{
-                    marginTop: 8,
-                    padding: '6px 10px',
-                    cursor: 'pointer',
-                    borderRadius: 4,
-                    border: 'none',
-                    backgroundColor: '#1976d2',
-                    color: '#fff',
-                  }}
-                >
-                  Exportar PNG
-                </button>
-              </motion.div>
-            </section>
-          ))}
-        </motion.main>
-      )}
-
-      <footer
-        role="contentinfo"
-        style={{
-          textAlign: 'center',
-          padding: 20,
-          backgroundColor: modoAltoContraste
-            ? '#000'
-            : modoOscuro
-            ? '#263238'
-            : '#1976d2',
-          color: modoAltoContraste ? '#FFD500' : modoOscuro ? '#ffc107' : '#fff',
-          borderRadius: 8,
-          maxWidth: 900,
-          margin: '40px auto 20px',
-          fontSize: 14,
-          userSelect: 'none',
-        }}
-      >
-        <p tabIndex={0}>&copy; {new Date().getFullYear()} Comparativo Energético. Todos los derechos reservados.</p>
-      </footer>
-
-      {/* Spinner keyframes in style tag for self-contained example */}
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          button:focus {
-            outline: 3px solid #ffd500;
-            outline-offset: 2px;
-          }
-        `}
-      </style>
+        {renderContent()}
+      </main>
     </div>
   );
 };
 
-export default DashboardEnergetico;
+export default Dashboard;
