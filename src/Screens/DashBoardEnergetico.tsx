@@ -1,255 +1,170 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
-const Dashboard = () => {
-  const [activeSection, setActiveSection] = useState('resumen');
+type Tab = {
+  label: string;
+  url?: string;
+  icon: string;
+};
 
-  const styles = {
-    dashboardContainer: {
-      display: 'flex',
-      height: '100vh',
-      fontFamily: 'Segoe UI, sans-serif',
-      backgroundColor: '#f4f6f9',
-      color: '#333',
-    },
-    sidebar: {
-      width: '250px',
-      backgroundColor: '#1e293b',
-      color: '#fff',
-      padding: '20px',
-      boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
-    },
-    navList: {
-      listStyle: 'none',
-      padding: 0,
-      marginTop: '30px',
-    },
-    navItem: (active: boolean) => ({
-      padding: '12px 10px',
-      cursor: 'pointer',
-      borderRadius: '6px',
-      marginBottom: '10px',
-      transition: 'background 0.3s',
-      backgroundColor: active ? '#3b82f6' : 'transparent',
-      color: active ? '#fff' : '#cbd5e1',
-      fontWeight: active ? '600' : 'normal',
-      userSelect: 'none' as const,
-    }),
-    mainContent: {
-      flex: 1,
-      padding: '30px',
-      overflowY: 'auto' as const,
-    },
-    header: {
-      marginBottom: '20px',
-      borderBottom: '2px solid #e2e8f0',
-      paddingBottom: '10px',
-    },
-    section: {
-      marginBottom: '40px',
-    },
-    sectionTitle: {
-      fontSize: '1.25rem',
-      marginBottom: '15px',
-      fontWeight: 'bold',
-      color: '#1e293b',
-    },
-    chartContainer: {
-      backgroundColor: '#fff',
-      padding: '20px',
-      borderRadius: '10px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-      minHeight: '300px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center' as const,
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse' as const,
-      backgroundColor: '#fff',
-      borderRadius: '10px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-    },
-    th: {
-      borderBottom: '2px solid #1e293b',
-      textAlign: 'left' as const,
-      padding: '12px 15px',
-      backgroundColor: '#e2e8f0',
-      color: '#1e293b',
-      fontWeight: '600',
-    },
-    td: {
-      borderBottom: '1px solid #ddd',
-      padding: '12px 15px',
-      color: '#555',
-    },
-    trHover: {
-      backgroundColor: '#f1f5f9',
-    },
-  };
+type KPI = {
+  label: string;
+  value: string;
+};
 
-  // Datos de ejemplo para comparación entre países
-  const tableData = [
-    { id: 1, pais: 'Colombia', consumo_kwh: 123450, mes: 'Enero 2025' },
-    { id: 2, pais: 'México', consumo_kwh: 98765, mes: 'Enero 2025' },
-    { id: 3, pais: 'Argentina', consumo_kwh: 156780, mes: 'Enero 2025' },
-    { id: 4, pais: 'Chile', consumo_kwh: 43210, mes: 'Enero 2025' },
-  ];
+const tabs: Tab[] = [
+  { label: 'Inicio', icon: '🏠' },
+  { label: 'Resumen', url: 'https://app.powerbi.com/view?r=eyJrIjoiNzRkYzIxYmItYWY1Yi00OTYwLWE2NjgtY2E2YTY1ZDY0NzgxIiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9', icon: '📊' },
+  { label: 'Mapa', url: 'https://app.powerbi.com/view?r=eyJrIjoiZmJhYTBmMWQtOWUwMi00YjY3LWE5NWItODQ0MThkZWY4OGM5IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9', icon: '🗺️' },
+  { label: 'Análisis Temporal', url: 'https://app.powerbi.com/view?r=eyJrIjoiZGJjMGUzN2YtZTBjMy00NDcwLTljZmYtMGE4MDhjYjg5OTlkIiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9', icon: '⏰' },
+  { label: 'Condiciones Climáticas', url: 'https://app.powerbi.com/view?r=eyJrIjoiMjY1ZDhiZDEtM2Q0ZS00ZGZkLTg5M2EtYjAzYzdjNDYwMjU0IiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9', icon: '🌤️' },
+  { label: 'Paneles', url: 'https://app.powerbi.com/view?r=eyJrIjoiYWVkMjQzNjQtMzBlNS00NzhhLWI4NWQtMjdlMzhjMTc0NjlkIiwidCI6IjA3ZGE2N2EwLTFmNDMtNGU4Yy05NzdmLTVmODhiNjQ3MGVlNiIsImMiOjR9', icon: '🔋' }
+];
 
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'resumen':
-        return (
-          <section style={styles.section}>
-            <h2 style={styles.sectionTitle}>Resumen Comparativo entre Países</h2>
-            <div style={styles.chartContainer}>
-              <p>Gráficos resumen comparativo aquí (ej. consumo total por país)</p>
-            </div>
-          </section>
-        );
-      case 'consumo':
-        return (
-          <section style={styles.section}>
-            <h2 style={styles.sectionTitle}>Consumo de Energía por País</h2>
-            <div style={styles.chartContainer}>
-              <p>Gráficos de consumo sectorial por país aquí</p>
-            </div>
-          </section>
-        );
-      case 'solar':
-        return (
-          <section style={styles.section}>
-            <h2 style={styles.sectionTitle}>Energías Renovables por País</h2>
-            <div style={styles.chartContainer}>
-              <p>Gráficos de energía solar y otras renovables aquí</p>
-            </div>
-          </section>
-        );
-      case 'comparativos':
-        return (
-          <section style={styles.section}>
-            <h2 style={styles.sectionTitle}>Indicadores Comparativos</h2>
-            <div style={styles.chartContainer}>
-              <p>Gráficos de indicadores energéticos comparados entre países</p>
-            </div>
-          </section>
-        );
-      case 'alertas':
-        return (
-          <section style={styles.section}>
-            <h2 style={styles.sectionTitle}>Alertas y Tendencias Globales</h2>
-            <div style={styles.chartContainer}>
-              <p>Gráficos de alertas y tendencias energéticas globales</p>
-            </div>
-          </section>
-        );
-      case 'reportes':
-        return (
-          <section style={styles.section}>
-            <h2 style={styles.sectionTitle}>Reportes Descargables</h2>
-            <div style={styles.chartContainer}>
-              <p>Reportes comparativos y análisis descargables aquí</p>
-            </div>
-          </section>
-        );
-      case 'datos':
-        return (
-          <section style={styles.section}>
-            <h2 style={styles.sectionTitle}>Datos Detallados por País</h2>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>País</th>
-                  <th style={styles.th}>Consumo (kWh)</th>
-                  <th style={styles.th}>Mes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tableData.map(({ id, pais, consumo_kwh, mes }) => (
-                  <tr
-                    key={id}
-                    style={{ cursor: 'default' }}
-                    onMouseEnter={e =>
-                      (e.currentTarget.style.backgroundColor = styles.trHover.backgroundColor)
-                    }
-                    onMouseLeave={e =>
-                      (e.currentTarget.style.backgroundColor = 'transparent')
-                    }
-                  >
-                    <td style={styles.td}>{pais}</td>
-                    <td style={styles.td}>{consumo_kwh.toLocaleString()}</td>
-                    <td style={styles.td}>{mes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-        );
-      default:
-        return null;
-    }
-  };
+const kpis: KPI[] = [
+  { label: 'Energía Generada (kWh)', value: '7,50 mill' },
+  { label: 'Energía Consumida (kWh)', value: '8,49 mill' },
+  { label: 'Eficiencia (%)', value: '89.23%' },
+];
+
+export default function SolarDashboard() {
+  const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <div style={styles.dashboardContainer}>
-      <aside style={styles.sidebar}>
-        <h2>Dashboard Energético</h2>
-        <ul style={styles.navList}>
-          <li
-            style={styles.navItem(activeSection === 'resumen')}
-            onClick={() => setActiveSection('resumen')}
-          >
-            Resumen Comparativo
-          </li>
-          <li
-            style={styles.navItem(activeSection === 'consumo')}
-            onClick={() => setActiveSection('consumo')}
-          >
-            Consumo por País
-          </li>
-          <li
-            style={styles.navItem(activeSection === 'solar')}
-            onClick={() => setActiveSection('solar')}
-          >
-            Energías Renovables
-          </li>
-          <li
-            style={styles.navItem(activeSection === 'comparativos')}
-            onClick={() => setActiveSection('comparativos')}
-          >
-            Indicadores Comparativos
-          </li>
-          <li
-            style={styles.navItem(activeSection === 'alertas')}
-            onClick={() => setActiveSection('alertas')}
-          >
-            Alertas Globales
-          </li>
-          <li
-            style={styles.navItem(activeSection === 'reportes')}
-            onClick={() => setActiveSection('reportes')}
-          >
-            Reportes
-          </li>
-          <li
-            style={styles.navItem(activeSection === 'datos')}
-            onClick={() => setActiveSection('datos')}
-          >
-            Datos en Tabla
-          </li>
-        </ul>
+    <div style={{ display: 'flex', height: '100vh', fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', color: 'black', width: '191%' }}>
+      {/* Sidebar */}
+      <aside style={{ width: '220px', backgroundColor: '#0d9488', color: 'white', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '1.5rem', fontWeight: '700', fontSize: '1.5rem', borderBottom: '1px solid #14b8a6' }}>
+          ☀️ Solar Dashboard
+        </div>
+        <nav style={{ flexGrow: 1 }}>
+          {tabs.map((tab, index) => (
+            <button
+              key={tab.label}
+              onClick={() => setActiveTab(index)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.6rem',
+                padding: '1rem',
+                width: '100%',
+                background: activeTab === index ? '#14b8a6' : 'transparent',
+                border: 'none',
+                color: 'inherit',
+                cursor: 'pointer',
+                fontWeight: activeTab === index ? '700' : '500',
+                fontSize: '1rem',
+                transition: 'background-color 0.3s'
+              }}
+            >
+              <span>{tab.icon}</span> {tab.label}
+            </button>
+          ))}
+        </nav>
+        <footer style={{ padding: '1rem', fontSize: '0.8rem', borderTop: '1px solid #14b8a6', textAlign: 'center' }}>
+          &copy; 2025 Energía Solar
+        </footer>
       </aside>
 
-      <main style={styles.mainContent}>
-        <header style={styles.header}>
-          <h1>Dashboard Comparativo de Energía por País</h1>
-        </header>
+      {/* Main content */}
+      <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb', width: '100%' }}>
+        {activeTab === 0 ? (
+          <section style={{
+  padding: '1.5rem',
+  backgroundColor: '#ffffff',
+  flexGrow: 1,
+  overflowY: 'auto',
+  maxWidth: '950px', // límite de ancho
+  border: '1px solid #e5e7eb', // borde sutil (opcional)
+  borderRadius: '10px', // bordes redondeados
+  boxShadow: '0 2px 6px rgba(0,0,0,0.05)' // sombra ligera
+}}>
 
-        {renderContent()}
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              style={{ fontSize: '2.2rem', fontWeight: '700', color: '#0d9488', marginBottom: '1.5rem' }}
+            >
+              🌞 Sistema Inteligente para la Optimización de Energía Solar
+            </motion.h1>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                style={{
+                  flex: 1,
+                  minWidth: '250px',
+                  maxWidth: '800px',
+                  backgroundColor: '#e0f2fe',
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+              >
+                <strong style={{ fontSize: '1rem' }}>🎯 Objetivo:</strong>
+                <p>
+                  Desarrollar un sistema inteligente de análisis basado en Big Data, mediante un dashboard para optimizar el uso de energías renovables, particularmente energía solar, en contextos urbanos, con el fin de mejorar la eficiencia energética y contribuir al desarrollo sostenible de las ciudades.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.0 }}
+                style={{
+                  flex: 2,
+                  minWidth: '250px',
+                  maxWidth: '800px',
+                  backgroundColor: '#fef9c3',
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+              >
+                <strong style={{ fontSize: '1rem' }}>📘 Justificación:</strong>
+                <p>
+                  El desarrollo de un sistema inteligente apoyado en el análisis de datos masivos (Big Data) permite mejorar significativamente la gestión de la energía solar en zonas urbanas. A través del análisis del consumo energético, la producción solar, las condiciones climáticas y la demanda por zonas horarias o sectores específicos, se pueden identificar patrones útiles para optimizar el uso de la energía.
+                </p>
+              </motion.div>
+            </div>
+
+          </section>
+        ) : (
+          <>
+            <section style={{ display: 'flex', gap: '1rem', padding: '1rem', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+              {kpis.map((kpi) => (
+                <div
+                  key={kpi.label}
+                  style={{
+                    flex: 1,
+                    padding: '1rem',
+                    backgroundColor: '#d1fae5',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <div style={{ fontSize: '0.9rem', color: '#065f46' }}>{kpi.label}</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: '700', color: '#047857' }}>{kpi.value}</div>
+                </div>
+              ))}
+            </section>
+            <section style={{ flexGrow: 1, padding: '1rem' }}>
+              {tabs[activeTab].url && (
+                <iframe
+                  src={tabs[activeTab].url}
+                  title={tabs[activeTab].label}
+                  style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}
+                />
+              )}
+            </section>
+          </>
+        )}
       </main>
     </div>
   );
-};
-
-export default Dashboard;
+}
